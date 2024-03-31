@@ -13,7 +13,9 @@ def extract_text_from_pdf(pdf_file: str) -> list[str]:
 
             cleaned_content = re.sub(r'[^\w\s.,:;%]', '', content)
 
-            text_lines = re.split(r'(?<=[.,:;])\s+|\s{2,}', cleaned_content)
+            content_more_spaces = re.sub(r'(?<=\d)(\s*)([A-Z])', r'\1 \2', cleaned_content)
+
+            text_lines = re.split(r'(?<=[.,:;])\s+|\s{2,}', content_more_spaces)
             
             cleaned_text = [re.sub(r'[.,:;]', '', line.strip()) for line in text_lines if line.strip()]
 
