@@ -12,9 +12,9 @@ def extract_text_from_pdf(pdf_file: str) -> list[str]:
 
             cleaned_content = re.sub(r'[^\w\s.,:;%]', '', content)
 
-            text = cleaned_content.split('  ')
+            text_lines = re.split(r'(?<=[.,:;])\s+|\s{2,}', cleaned_content)
             
-            cleaned_text = [re.sub(r'[.,:;]', '', line.strip()) for line in text if line.strip()]
+            cleaned_text = [re.sub(r'[.,:;]', '', line.strip()) for line in text_lines if line.strip()]
 
             pdf_text.extend(cleaned_text)
 
@@ -30,8 +30,8 @@ def count_repetitions(pdf_text: list[str], dict_phrases: list[str]) -> dict[str,
     return repeated_phrase
 
 def main() -> None:
-    pdf_text: list[str] = extract_text_from_pdf('Sample 2.pdf')
-    dict_phrases: list[str] = ['documento', 'Texto', 'Sample PDF 1', 'Texto de relleno']
+    pdf_text: list[str] = extract_text_from_pdf('Sample.pdf')
+    dict_phrases: list[str] = extract_text_from_pdf('Sample.pdf')
 
     phrases_repetitions: dict[str, int] = count_repetitions(pdf_text, dict_phrases)
 
