@@ -29,14 +29,19 @@ def count_repetitions(pdf_text: list[str], dict_phrases: list[str]) -> dict[str,
 
     return repeated_phrase
 
+def write_file_txt(phrases_repetitions: dict[str, int], output_file: str) -> None:
+    with open(output_file, 'w') as file:
+        for phrase, repetitions in phrases_repetitions.items():
+            file.write(f'"{phrase}" aparece {repetitions} veces.\n')
+
 def main() -> None:
     pdf_text: list[str] = extract_text_from_pdf('Sample.pdf')
     dict_phrases: list[str] = extract_text_from_pdf('Sample.pdf')
 
     phrases_repetitions: dict[str, int] = count_repetitions(pdf_text, dict_phrases)
 
-    for phrase, repetiton in phrases_repetitions.items():
-        print(f'"{phrase}" aparece {repetiton}')
+    output_file: str = "repeticiones.txt"
+    write_file_txt(phrases_repetitions, output_file)
     
 if __name__ == '__main__':
     main()
