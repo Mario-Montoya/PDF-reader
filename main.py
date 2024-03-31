@@ -18,9 +18,9 @@ def extract_text_from_pdf(pdf_file: str) -> list[str]:
         return pdf_text
     
 def count_repetitions(pdf_text: list[str], dict_phrases: list[str]) -> dict[str, int]:
-    repeated_phrase = {phrase: 0 for phrase in dict_phrases}
+    repeated_phrase: dict[str, int] = {phrase: 0 for phrase in dict_phrases}
     
-    for phrase in dict_phrases:
+    for phrase in repeated_phrase:
         for text in pdf_text:
             repeated_phrase[phrase] += text.lower().count(phrase.lower())
 
@@ -28,7 +28,7 @@ def count_repetitions(pdf_text: list[str], dict_phrases: list[str]) -> dict[str,
 
 def main() -> None:
     pdf_text: list[str] = extract_text_from_pdf('Sample.pdf')
-    dict_phrases: list[str] = ['documento', 'Texto', 'Sample PDF 1']
+    dict_phrases: list[str] = ['documento', 'Texto', 'Sample PDF 1', 'Texto de relleno']
 
     phrases_repetitions: dict[str, int] = count_repetitions(pdf_text, dict_phrases)
 
