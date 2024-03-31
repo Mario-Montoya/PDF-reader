@@ -9,7 +9,11 @@ def extract_text_from_pdf(pdf_file: str) -> list[str]:
         for page in reader.pages:
             content = page.extract_text()
 
-            pdf_text.append(content)
+            text = content.split('  ')
+            
+            cleaned_text = [line.strip() for line in text if line.strip()]
+
+            pdf_text.append(cleaned_text)
 
         return pdf_text
     
@@ -17,11 +21,7 @@ def main() -> None:
     text_pdf = extract_text_from_pdf('Sample.pdf')
 
     for page in text_pdf:
-        text = page.split('  ')
-        cleaned_text = [line.strip() for line in text if line != '']
-
-        for line in cleaned_text:
-            print(line)
+        print(page)
     
 if __name__ == '__main__':
     main()
