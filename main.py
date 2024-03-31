@@ -1,4 +1,5 @@
 from PyPDF2 import PdfReader
+import re
 
 def extract_text_from_pdf(pdf_file: str) -> list[str]:
 
@@ -9,9 +10,11 @@ def extract_text_from_pdf(pdf_file: str) -> list[str]:
         for page in reader.pages:
             content = page.extract_text()
 
-            text = content.split('  ')
+            cleaned_content = re.sub(r'[^\w\s.,:;%]', '', content)
+
+            text = cleaned_content.split('  ')
             
-            cleaned_text = [line.strip() for line in text if line.strip()]
+            cleaned_text = [re.sub(r'[.,:;]', '', line.strip()) for line in text if line.strip()]
 
             pdf_text.extend(cleaned_text)
 
@@ -27,7 +30,7 @@ def count_repetitions(pdf_text: list[str], dict_phrases: list[str]) -> dict[str,
     return repeated_phrase
 
 def main() -> None:
-    pdf_text: list[str] = extract_text_from_pdf('Sample.pdf')
+    pdf_text: list[str] = extract_text_from_pdf('Sample 2.pdf')
     dict_phrases: list[str] = ['documento', 'Texto', 'Sample PDF 1', 'Texto de relleno']
 
     phrases_repetitions: dict[str, int] = count_repetitions(pdf_text, dict_phrases)
