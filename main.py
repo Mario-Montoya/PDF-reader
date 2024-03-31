@@ -1,8 +1,9 @@
+import tkinter as tk
+from tkinter import filedialog
 from PyPDF2 import PdfReader
 import re
 
 def extract_text_from_pdf(pdf_file: str) -> list[str]:
-
     with open(pdf_file, 'rb') as pdf:
         reader = PdfReader(pdf, strict = False)
         pdf_text = []
@@ -35,8 +36,23 @@ def write_file_txt(phrases_repetitions: dict[str, int], output_file: str) -> Non
             file.write(f'"{phrase}" aparece {repetitions} veces.\n')
 
 def main() -> None:
-    pdf_text: list[str] = extract_text_from_pdf('Sample.pdf')
-    dict_phrases: list[str] = extract_text_from_pdf('Sample.pdf')
+    root = tk.Tk()
+    root.withdraw()
+
+    print("Select a PDF file")
+    pdf_file: str = filedialog.askopenfilename(title="Select a PDF file", filetypes = [("PDF Files", "*.pdf")])
+    if not pdf_file:
+        print("No file selected")
+        return
+
+    print("Select a PDF file as dictionary")
+    pdf_dictionary: str = filedialog.askopenfilename(title="Select a PDF file", filetypes = [("PDF Files", "*.pdf")])
+    if not pdf_dictionary:
+        print("No file selected")
+        return
+    
+    pdf_text: list[str] = extract_text_from_pdf(pdf_file)
+    dict_phrases: list[str] = extract_text_from_pdf(pdf_dictionary)
 
     phrases_repetitions: dict[str, int] = count_repetitions(pdf_text, dict_phrases)
 
