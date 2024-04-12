@@ -63,11 +63,11 @@ def count_repetitions(pdf_text: list[str], dict_phrases: dict[str, int], dict_wo
 
     return phrase_repetition, word_repetition
 
-def write_file_txt(phrases_repetitions: dict[str, int], output_file: str) -> None:
+def write_file_txt(dictionary: dict[str, int], output_file: str, sort: bool = False) -> None:
     try:
         with open(output_file, 'w') as file:
-            for phrase, repetitions in phrases_repetitions.items():
-                file.write(f'"{phrase}" aparece {repetitions} veces.\n')
+            for key, value in sorted(dictionary.items()) if sort else dictionary.items():
+                file.write(f'"{key}" aparece {value} veces.\n')
 
         print(f'Results written to {output_file}')
     
@@ -99,7 +99,7 @@ def main() -> None:
     phrases_output_file: str = 'phrases_repetitions.txt'
     words_output_file: str = 'words_repetitions.txt'
     write_file_txt(phrases_repetitions, phrases_output_file)
-    write_file_txt(words_repetitions, words_output_file)
+    write_file_txt(words_repetitions, words_output_file, True)
     
 if __name__ == '__main__':
     main()
