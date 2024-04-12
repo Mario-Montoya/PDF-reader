@@ -3,12 +3,12 @@ from tkinter import filedialog
 from PyPDF2 import PdfReader
 import re
 
-def select_file(title: str, filetypes: list[tuple[str, str]]) -> str:
+def select_file(title: str, filetypes: tuple[str, str]) -> str:
     root = tk.Tk()
     root.withdraw()
 
     print(f'Select a {title}')
-    file_path: str = filedialog.askopenfilename(title = f'Select a {title} file', filetypes = filetypes)
+    file_path: str = filedialog.askopenfilename(title = f'Select a {title} file', filetypes = [filetypes])
     
     if not file_path:
         print("No file selected")
@@ -32,22 +32,21 @@ def create_dictionary(pdf_text: list[str]) -> dict[str, int]:
     phrases = {}
     words = {}
 
-    for content in pdf_text:
-        cleaned_content = re.sub(r'[^\w\s.,:;()<>+\-\[\]]', '', content)
+    all_content = '  '.join(pdf_text)
+    
+    cleaned_content = re.sub(r'[^\w\s.,:;()<>+\-\[\]]', '', all_content)
+    space_inbetween = re.sub(r'(?<=\d|\w|\))(\s+)([A-Z])', r'\1 \2', cleaned_content)
+    text_lines = re.split(r'(?<=[.,:;])\s+|\s{2,}|\d\s(?=\d)', space_inbetween)
 
-        space_inbetween = re.sub(r'(?<=\d|\w|\))(\s+)([A-Z])', r'\1 \2', cleaned_content)
+    for line in text_lines:
+        line = re.sub(r'[,:;]|(?<!\d)\.(?![a-z])', '', line.strip())
+        
+        if line and not re.match(r'^\d', line):
+            phrases[line] = 0
 
-        text_lines = re.split(r'(?<=[.,:;])\s+|\s{2,}|\d\s(?=\d)', space_inbetween)
-
-        for line in text_lines:
-            line = re.sub(r'[,:;]|(?<!\d)\.(?![a-z])', '', line.strip())
-            
-            if line and not re.match(r'^\d', line):
-                phrases[line] = 0
-
-            words_in_line = re.findall(r'\b[A-Za-z]{2,}\b', line)
-            for word in words_in_line:
-                words[word] = 0
+        words_in_line = re.findall(r'\b[A-Za-z]{2,}\b', line)
+        for word in words_in_line:
+            words[word] = 0
 
     return phrases, words
     
@@ -72,11 +71,11 @@ def write_file_txt(phrases_repetitions: dict[str, int], output_file: str) -> Non
         print(f'Error: Failed to write results to file: {e}')
 
 def main() -> None:
-    pdf_file: str = select_file('PDF', [('PDF Files', '*.pdf')])
+    pdf_file: str = select_file('PDF', ('PDF Files', '*.pdf'))
     if not pdf_file:
         return
     
-    pdf_dictionary: str = select_file('PDF dictionary', [('PDF Files', '*.pdf')])
+    pdf_dictionary: str = select_file('PDF dictionary', ('PDF Files', '*.pdf'))
     if not pdf_dictionary:
         return
     
