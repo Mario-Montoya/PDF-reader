@@ -55,9 +55,15 @@ def count_repetitions(pdf_text: list[str], dict_phrases: dict[str, int]) -> dict
     return phrase_repetition
 
 def write_file_txt(phrases_repetitions: dict[str, int], output_file: str) -> None:
-    with open(output_file, 'w') as file:
-        for phrase, repetitions in phrases_repetitions.items():
-            file.write(f'"{phrase}" aparece {repetitions} veces.\n')
+    try:
+        with open(output_file, 'w') as file:
+            for phrase, repetitions in phrases_repetitions.items():
+                file.write(f'"{phrase}" aparece {repetitions} veces.\n')
+
+        print(f"Results written to {output_file}")
+    
+    except Exception as e: 
+        print(f"Error: Failed to write results to file: {e}")
 
 def main() -> None:
     pdf_file: str = select_file('PDF', [('PDF Files', '*.pdf')])
