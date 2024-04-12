@@ -30,16 +30,16 @@ def create_dictionary(pdf_text: list[str]) -> dict[str, int]:
     phrases = {}
 
     for content in pdf_text:
-        cleaned_content = re.sub(r'[^\w\s.,:;%]', '', content)
+        cleaned_content = re.sub(r'[^\w\s.,:;()<>+\-\[\]]', '', content)
 
-        content_more_spaces = re.sub(r'(?<=\d)(\s*)([A-Z])', r'\1 \2', cleaned_content)
+        space_inbetween = re.sub(r'(?<=\d)(\s*)([A-Z])', r'\1 \2', cleaned_content)
 
-        text_lines = re.split(r'(?<=[.,:;])\s+|\s{2,}', content_more_spaces)
+        text_lines = re.split(r'(?<=[.,:;])\s+|\s{2,}|\d\s(?=\d)', space_inbetween)
 
-        cleaned_text = [re.sub(r'[.,:;]', '', line.strip()) for line in text_lines if line.strip()]
-
-        for phrase in cleaned_text:
-            phrases[phrase.lower()] = 0
+        for line in text_lines:
+            line = re.sub(r'[,:;]|(?<!\d)\.(?!\d)', '', line.strip())
+            if line and not re.match(r'^\d', line):
+                phrases[line.lower()] = 0
 
     return phrases
     
