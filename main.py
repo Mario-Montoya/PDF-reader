@@ -34,12 +34,13 @@ def create_dictionary(pdf_text: list[str]) -> dict[str, int]:
     for content in pdf_text:
         cleaned_content = re.sub(r'[^\w\s.,:;()<>+\-\[\]]', '', content)
 
-        space_inbetween = re.sub(r'(?<=\d)(\s*)([A-Z])', r'\1 \2', cleaned_content)
+        space_inbetween = re.sub(r'(?<=\d|\w)(\s+)([A-Z])', r'\1 \2', cleaned_content)
 
         text_lines = re.split(r'(?<=[.,:;])\s+|\s{2,}|\d\s(?=\d)', space_inbetween)
 
         for line in text_lines:
             line = re.sub(r'[,:;]|(?<!\d)\.(?!\d)', '', line.strip())
+            
             if line and not re.match(r'^\d', line):
                 phrases[line.lower()] = 0
 
