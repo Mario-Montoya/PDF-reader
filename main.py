@@ -23,7 +23,7 @@ def extract_text_from_pdf(pdf_file: str) -> list[str]:
             pdf_text = [page.extract_text().strip() for page in reader.pages]
 
     except Exception as e: 
-        print(f'Error: failed to extract text form the PDF: {e}')
+        print(f'Error: Failed to extract text form the PDF: {e}')
         return[]
     
     return pdf_text
@@ -60,10 +60,10 @@ def write_file_txt(phrases_repetitions: dict[str, int], output_file: str) -> Non
             for phrase, repetitions in phrases_repetitions.items():
                 file.write(f'"{phrase}" aparece {repetitions} veces.\n')
 
-        print(f"Results written to {output_file}")
+        print(f'Results written to {output_file}')
     
     except Exception as e: 
-        print(f"Error: Failed to write results to file: {e}")
+        print(f'Error: Failed to write results to file: {e}')
 
 def main() -> None:
     pdf_file: str = select_file('PDF', [('PDF Files', '*.pdf')])
@@ -75,12 +75,19 @@ def main() -> None:
         return
     
     pdf_text: list[str] = extract_text_from_pdf(pdf_file)
+    if not pdf_text:
+        print('No text extracted from PDF. Exiting program')
+        return
+    
     dict_text: list[str] = extract_text_from_pdf(pdf_dictionary)
+    if not dict_text:
+        print('No text extracted from PDF. Exiting program')
+        return
 
     dict_phrases: dict[str, int] = create_dictionary(dict_text)
     phrases_repetitions: dict[str, int] = count_repetitions(pdf_text, dict_phrases)
 
-    output_file: str = "repeticiones.txt"
+    output_file: str = 'repeticiones.txt'
     write_file_txt(phrases_repetitions, output_file)
     
 if __name__ == '__main__':
