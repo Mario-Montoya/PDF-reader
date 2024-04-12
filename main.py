@@ -50,14 +50,18 @@ def create_dictionary(pdf_text: list[str]) -> dict[str, int]:
 
     return phrases, words
     
-def count_repetitions(pdf_text: list[str], dict_phrases: dict[str, int]) -> dict[str, int]:
+def count_repetitions(pdf_text: list[str], dict_phrases: dict[str, int], dict_words: dict[str, int]) -> dict[str, int]:
     phrase_repetition = dict_phrases.copy()
+    word_repetition = dict_words.copy()
     
-    for phrase in phrase_repetition:
-        for text in pdf_text:
+    for text in pdf_text:
+        for phrase in phrase_repetition:
             phrase_repetition[phrase] += text.lower().count(phrase.lower())
 
-    return phrase_repetition
+        for word in word_repetition:
+            word_repetition[word] += text.lower().count(word.lower())
+
+    return phrase_repetition, word_repetition
 
 def write_file_txt(phrases_repetitions: dict[str, int], output_file: str) -> None:
     try:
@@ -86,12 +90,11 @@ def main() -> None:
     
     dict_text: list[str] = extract_text_from_pdf(pdf_dictionary)
     if not dict_text:
-        print('No text extracted from PDF. Exiting program')
+        print('No text extracted from PDF dictionary. Exiting program')
         return
 
     dict_phrases, dict_words = create_dictionary(dict_text)
-    phrases_repetitions: dict[str, int] = count_repetitions(pdf_text, dict_phrases)
-    words_repetitions: dict[str, int] = count_repetitions(pdf_text, dict_words)
+    phrases_repetitions, words_repetitions = count_repetitions(pdf_text, dict_phrases, dict_words)
 
     phrases_output_file: str = 'phrases_repetitions.txt'
     words_output_file: str = 'words_repetitions.txt'
