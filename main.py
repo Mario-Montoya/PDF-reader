@@ -22,27 +22,35 @@ def extract_text_from_pdf(pdf_file: str) -> list[str]:
 
         for page in reader.pages:
             content = page.extract_text()
+            pdf_text.append(content.strip())
 
-            cleaned_content = re.sub(r'[^\w\s.,:;%]', '', content)
+    return pdf_text
 
-            content_more_spaces = re.sub(r'(?<=\d)(\s*)([A-Z])', r'\1 \2', cleaned_content)
+def create_dictionary(pdf_text: list[str]) -> dict[str, int]:
+    phrases = {}
 
-            text_lines = re.split(r'(?<=[.,:;])\s+|\s{2,}', content_more_spaces)
-            
-            cleaned_text = [re.sub(r'[.,:;]', '', line.strip()) for line in text_lines if line.strip()]
+    for content in pdf_text:
+        cleaned_content = re.sub(r'[^\w\s.,:;()<>+\-\[\]]', '', content)
 
-            pdf_text.extend(cleaned_text)
+        space_inbetween = re.sub(r'(?<=\d)(\s*)([A-Z])', r'\1 \2', cleaned_content)
 
-        return pdf_text
+        text_lines = re.split(r'(?<=[.,:;])\s+|\s{2,}|\d\s(?=\d)', space_inbetween)
+
+        for line in text_lines:
+            line = re.sub(r'[,:;]|(?<!\d)\.(?!\d)', '', line.strip())
+            if line and not re.match(r'^\d', line):
+                phrases[line.lower()] = 0
+
+    return phrases
     
-def count_repetitions(pdf_text: list[str], dict_phrases: list[str]) -> dict[str, int]:
-    repeated_phrase: dict[str, int] = {phrase: 0 for phrase in dict_phrases}
+def count_repetitions(pdf_text: list[str], dict_phrases: dict[str, int]) -> dict[str, int]:
+    phrase_repetition = dict_phrases.copy()
     
-    for phrase in repeated_phrase:
+    for phrase in phrase_repetition:
         for text in pdf_text:
-            repeated_phrase[phrase] += text.lower().count(phrase.lower())
+            phrase_repetition[phrase] += text.lower().count(phrase)
 
-    return repeated_phrase
+    return phrase_repetition
 
 def write_file_txt(phrases_repetitions: dict[str, int], output_file: str) -> None:
     with open(output_file, 'w') as file:
@@ -53,14 +61,15 @@ def main() -> None:
     pdf_file: str = select_file('PDF', [('PDF Files', '*.pdf')])
     if not pdf_file:
         return
-
+    
     pdf_dictionary: str = select_file('PDF dictionary', [('PDF Files', '*.pdf')])
     if not pdf_dictionary:
         return
     
     pdf_text: list[str] = extract_text_from_pdf(pdf_file)
-    dict_phrases: list[str] = extract_text_from_pdf(pdf_dictionary)
+    dict_text: list[str] = extract_text_from_pdf(pdf_dictionary)
 
+    dict_phrases: dict[str, int] = create_dictionary(dict_text)
     phrases_repetitions: dict[str, int] = count_repetitions(pdf_text, dict_phrases)
 
     output_file: str = "repeticiones.txt"
