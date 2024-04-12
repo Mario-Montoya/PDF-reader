@@ -16,6 +16,18 @@ def select_file(title: str, filetypes: tuple[str, str]) -> str:
     
     return file_path
 
+def select_file_output(title: str, filetypes: tuple[str, str]) -> str:
+    root = tk.Tk()
+    root.withdraw()
+
+    file_path: str = filedialog.asksaveasfilename(initialfile = title, filetypes = [filetypes])
+
+    if not file_path:
+        print("No location selected")
+        return ''
+
+    return file_path
+
 def extract_text_from_pdf(pdf_file: str) -> list[str]:
     try:
         with open(pdf_file, 'rb') as pdf:
@@ -96,8 +108,14 @@ def main() -> None:
     dict_phrases, dict_words = create_dictionary(dict_text)
     phrases_repetitions, words_repetitions = count_repetitions(pdf_text, dict_phrases, dict_words)
 
-    phrases_output_file: str = 'phrases_repetitions.txt'
-    words_output_file: str = 'words_repetitions.txt'
+    phrases_output_file: str = select_file_output('phrases_repetitions', ('Text files', '*.txt'))
+    if not phrases_output_file:
+        return
+    
+    words_output_file: str = select_file_output('words_repetitions', ('Text files', '*.txt'))
+    if not words_output_file:
+        return
+
     write_file_txt(phrases_repetitions, phrases_output_file)
     write_file_txt(words_repetitions, words_output_file, True)
     
