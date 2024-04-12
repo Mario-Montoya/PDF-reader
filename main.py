@@ -30,27 +30,33 @@ def extract_text_from_pdf(pdf_file: str) -> list[str]:
 
 def create_dictionary(pdf_text: list[str]) -> dict[str, int]:
     phrases = {}
+    words = {}
 
     for content in pdf_text:
         cleaned_content = re.sub(r'[^\w\s.,:;()<>+\-\[\]]', '', content)
 
-        space_inbetween = re.sub(r'(?<=\d)(\s*)([A-Z])', r'\1 \2', cleaned_content)
+        space_inbetween = re.sub(r'(?<=\d|\w|\))(\s+)([A-Z])', r'\1 \2', cleaned_content)
 
         text_lines = re.split(r'(?<=[.,:;])\s+|\s{2,}|\d\s(?=\d)', space_inbetween)
 
         for line in text_lines:
-            line = re.sub(r'[,:;]|(?<!\d)\.(?!\d)', '', line.strip())
+            line = re.sub(r'[,:;]|(?<!\d)\.(?![a-z])', '', line.strip())
+            
             if line and not re.match(r'^\d', line):
-                phrases[line.lower()] = 0
+                phrases[line] = 0
 
-    return phrases
+            words_in_line = re.findall(r'\b[A-Za-z]{2,}\b', line)
+            for word in words_in_line:
+                words[word] = 0
+
+    return phrases, words
     
 def count_repetitions(pdf_text: list[str], dict_phrases: dict[str, int]) -> dict[str, int]:
     phrase_repetition = dict_phrases.copy()
     
     for phrase in phrase_repetition:
         for text in pdf_text:
-            phrase_repetition[phrase] += text.lower().count(phrase)
+            phrase_repetition[phrase] += text.lower().count(phrase.lower())
 
     return phrase_repetition
 
@@ -84,11 +90,14 @@ def main() -> None:
         print('No text extracted from PDF. Exiting program')
         return
 
-    dict_phrases: dict[str, int] = create_dictionary(dict_text)
+    dict_phrases, dict_words = create_dictionary(dict_text)
     phrases_repetitions: dict[str, int] = count_repetitions(pdf_text, dict_phrases)
+    words_repetitions: dict[str, int] = count_repetitions(pdf_text, dict_words)
 
-    output_file: str = 'repeticiones.txt'
-    write_file_txt(phrases_repetitions, output_file)
+    phrases_output_file: str = 'phrases_repetitions.txt'
+    words_output_file: str = 'words_repetitions.txt'
+    write_file_txt(phrases_repetitions, phrases_output_file)
+    write_file_txt(words_repetitions, words_output_file)
     
 if __name__ == '__main__':
     main()
