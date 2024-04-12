@@ -3,6 +3,18 @@ from tkinter import filedialog
 from PyPDF2 import PdfReader
 import re
 
+def select_file(title: str, filetypes: list[tuple[str, str]]) -> str:
+    root = tk.Tk()
+    root.withdraw()
+
+    print(f'Select a {title}')
+    file_path: str = filedialog.askopenfilename(title = f'Select a {title} file', filetypes = filetypes)
+    if not file_path:
+        print("No file selected")
+        return ''
+    
+    return file_path
+
 def extract_text_from_pdf(pdf_file: str) -> list[str]:
     with open(pdf_file, 'rb') as pdf:
         reader = PdfReader(pdf, strict = False)
@@ -38,19 +50,12 @@ def write_file_txt(phrases_repetitions: dict[str, int], output_file: str) -> Non
             file.write(f'"{phrase}" aparece {repetitions} veces.\n')
 
 def main() -> None:
-    root = tk.Tk()
-    root.withdraw()
-
-    print("Select a PDF file")
-    pdf_file: str = filedialog.askopenfilename(title="Select a PDF file", filetypes = [("PDF Files", "*.pdf")])
+    pdf_file: str = select_file('PDF', [('PDF Files', '*.pdf')])
     if not pdf_file:
-        print("No file selected")
         return
 
-    print("Select a PDF file as dictionary")
-    pdf_dictionary: str = filedialog.askopenfilename(title="Select a PDF file", filetypes = [("PDF Files", "*.pdf")])
+    pdf_dictionary: str = select_file('PDF dictionary', [('PDF Files', '*.pdf')])
     if not pdf_dictionary:
-        print("No file selected")
         return
     
     pdf_text: list[str] = extract_text_from_pdf(pdf_file)
