@@ -3,7 +3,7 @@ from tkinter import filedialog
 from PyPDF2 import PdfReader
 import re
 
-def select_file(title: str, filetypes: list[tuple]) -> str:
+def select_file(title: str, filetypes: list[tuple[str, str]]) -> str:
     root = tk.Tk()
     root.withdraw()
 
