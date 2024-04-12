@@ -9,6 +9,7 @@ def select_file(title: str, filetypes: list[tuple[str, str]]) -> str:
 
     print(f'Select a {title}')
     file_path: str = filedialog.askopenfilename(title = f'Select a {title} file', filetypes = filetypes)
+    
     if not file_path:
         print("No file selected")
         return ''
@@ -16,14 +17,15 @@ def select_file(title: str, filetypes: list[tuple[str, str]]) -> str:
     return file_path
 
 def extract_text_from_pdf(pdf_file: str) -> list[str]:
-    with open(pdf_file, 'rb') as pdf:
-        reader = PdfReader(pdf, strict = False)
-        pdf_text = []
+    try:
+        with open(pdf_file, 'rb') as pdf:
+            reader = PdfReader(pdf, strict = False)
+            pdf_text = [page.extract_text().strip() for page in reader.pages]
 
-        for page in reader.pages:
-            content = page.extract_text()
-            pdf_text.append(content.strip())
-
+    except Exception as e: 
+        print(f'Error: failed to extract text form the PDF: {e}')
+        return[]
+    
     return pdf_text
 
 def create_dictionary(pdf_text: list[str]) -> dict[str, int]:
