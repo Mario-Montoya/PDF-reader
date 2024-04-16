@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog
 from PyPDF2 import PdfReader
 import re
+from fpdf import FPDF
 
 def select_file(title: str, filetypes: tuple[str, str]) -> str:
     root = tk.Tk()
@@ -75,16 +76,21 @@ def count_repetitions(pdf_text: list[str], dict_phrases: dict[str, int], dict_wo
 
     return phrase_repetition, word_repetition
 
-def write_file_txt(dictionary: dict[str, int], output_file: str, sort: bool = False) -> None:
+def write_file_pdf(dictionary: dict[str, int], output_file: str, sort: bool = False) -> None:
     try:
-        with open(output_file, 'w') as file:
-            for key, value in sorted(dictionary.items()) if sort else dictionary.items():
-                file.write(f'"{key}" aparece {value} veces.\n')
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Helvetica", size = 10)
 
+        for key, value in sorted(dictionary.items()) if sort else dictionary.items():
+            text = f'"{key}" aparece {value} veces.'
+            pdf.multi_cell(0, 5, txt = text)
+
+        pdf.output(output_file)
         print(f'Results written to {output_file}')
-    
-    except Exception as e: 
-        print(f'Error: Failed to write results to file: {e}')
+
+    except Exception as e:
+        print(f'Error: Failed to write results to PDF file: {e}')
 
 def main() -> None:
     pdf_file: str = select_file('PDF', ('PDF Files', '*.pdf'))
@@ -108,16 +114,16 @@ def main() -> None:
     dict_phrases, dict_words = create_dictionary(dict_text)
     phrases_repetitions, words_repetitions = count_repetitions(pdf_text, dict_phrases, dict_words)
 
-    phrases_output_file: str = select_file_output('phrases_repetitions', ('Text files', '*.txt'))
+    phrases_output_file: str = select_file_output('phrases_repetitions', ('PDF Files', '*.pdf'))
     if not phrases_output_file:
         return
     
-    words_output_file: str = select_file_output('words_repetitions', ('Text files', '*.txt'))
+    words_output_file: str = select_file_output('words_repetitions', ('PDF Files', '*.pdf'))
     if not words_output_file:
         return
 
-    write_file_txt(phrases_repetitions, phrases_output_file)
-    write_file_txt(words_repetitions, words_output_file, True)
+    write_file_pdf(phrases_repetitions, phrases_output_file)
+    write_file_pdf(words_repetitions, words_output_file, True)
     
 if __name__ == '__main__':
     main()
