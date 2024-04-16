@@ -1,13 +1,9 @@
-import tkinter as tk
 from tkinter import filedialog
 from PyPDF2 import PdfReader
 import re
 from fpdf import FPDF
 
 def select_file(title: str, filetypes: tuple[str, str]) -> str:
-    root = tk.Tk()
-    root.withdraw()
-
     print(f'Select a {title}')
     file_path: str = filedialog.askopenfilename(title = f'Select a {title} file', filetypes = [filetypes])
     
@@ -18,9 +14,6 @@ def select_file(title: str, filetypes: tuple[str, str]) -> str:
     return file_path
 
 def select_file_output(title: str, filetypes: tuple[str, str]) -> str:
-    root = tk.Tk()
-    root.withdraw()
-
     file_path: str = filedialog.asksaveasfilename(initialfile = title, filetypes = [filetypes])
 
     if not file_path:
