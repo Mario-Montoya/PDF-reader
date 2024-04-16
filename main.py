@@ -3,63 +3,121 @@ from tkinter import filedialog
 from PyPDF2 import PdfReader
 import re
 
-def extract_text_from_pdf(pdf_file: str) -> list[str]:
-    with open(pdf_file, 'rb') as pdf:
-        reader = PdfReader(pdf, strict = False)
-        pdf_text = []
-
-        for page in reader.pages:
-            content = page.extract_text()
-
-            cleaned_content = re.sub(r'[^\w\s.,:;%]', '', content)
-
-            content_more_spaces = re.sub(r'(?<=\d)(\s*)([A-Z])', r'\1 \2', cleaned_content)
-
-            text_lines = re.split(r'(?<=[.,:;])\s+|\s{2,}', content_more_spaces)
-            
-            cleaned_text = [re.sub(r'[.,:;]', '', line.strip()) for line in text_lines if line.strip()]
-
-            pdf_text.extend(cleaned_text)
-
-        return pdf_text
-    
-def count_repetitions(pdf_text: list[str], dict_phrases: list[str]) -> dict[str, int]:
-    repeated_phrase: dict[str, int] = {phrase: 0 for phrase in dict_phrases}
-    
-    for phrase in repeated_phrase:
-        for text in pdf_text:
-            repeated_phrase[phrase] += text.lower().count(phrase.lower())
-
-    return repeated_phrase
-
-def write_file_txt(phrases_repetitions: dict[str, int], output_file: str) -> None:
-    with open(output_file, 'w') as file:
-        for phrase, repetitions in phrases_repetitions.items():
-            file.write(f'"{phrase}" aparece {repetitions} veces.\n')
-
-def main() -> None:
+def select_file(title: str, filetypes: tuple[str, str]) -> str:
     root = tk.Tk()
     root.withdraw()
 
-    print("Select a PDF file")
-    pdf_file: str = filedialog.askopenfilename(title="Select a PDF file", filetypes = [("PDF Files", "*.pdf")])
-    if not pdf_file:
+    print(f'Select a {title}')
+    file_path: str = filedialog.askopenfilename(title = f'Select a {title} file', filetypes = [filetypes])
+    
+    if not file_path:
         print("No file selected")
-        return
+        return ''
+    
+    return file_path
 
-    print("Select a PDF file as dictionary")
-    pdf_dictionary: str = filedialog.askopenfilename(title="Select a PDF file", filetypes = [("PDF Files", "*.pdf")])
+def select_file_output(title: str, filetypes: tuple[str, str]) -> str:
+    root = tk.Tk()
+    root.withdraw()
+
+    file_path: str = filedialog.asksaveasfilename(initialfile = title, filetypes = [filetypes])
+
+    if not file_path:
+        print("No location selected")
+        return ''
+
+    return file_path
+
+def extract_text_from_pdf(pdf_file: str) -> list[str]:
+    try:
+        with open(pdf_file, 'rb') as pdf:
+            reader = PdfReader(pdf, strict = False)
+            pdf_text = [page.extract_text().strip() for page in reader.pages]
+
+    except Exception as e: 
+        print(f'Error: Failed to extract text form the PDF: {e}')
+        return[]
+    
+    return pdf_text
+
+def create_dictionary(pdf_text: list[str]) -> dict[str, int]:
+    phrases = {}
+    words = {}
+
+    all_content = '  '.join(pdf_text)
+    
+    cleaned_content = re.sub(r'[^\w\s.,:;()<>+\-\[\]]', '', all_content)
+    space_inbetween = re.sub(r'(?<=\d|\w|\))(\s+)([A-Z])', r'\1 \2', cleaned_content)
+    text_lines = re.split(r'(?<=[.,:;])\s+|\s{2,}|\d\s(?=\d)', space_inbetween)
+
+    for line in text_lines:
+        line = re.sub(r'[,:;]|(?<!\d)\.(?![a-z])', '', line.strip())
+        
+        if line and not re.match(r'^\d', line):
+            phrases[line] = 0
+
+        words_in_line = re.findall(r'\b[A-Za-z]{2,}\b', line)
+        for word in words_in_line:
+            words[word] = 0
+
+    return phrases, words
+    
+def count_repetitions(pdf_text: list[str], dict_phrases: dict[str, int], dict_words: dict[str, int]) -> dict[str, int]:
+    phrase_repetition = dict_phrases.copy()
+    word_repetition = dict_words.copy()
+    
+    for text in pdf_text:
+        for phrase in phrase_repetition:
+            phrase_repetition[phrase] += text.lower().count(phrase.lower())
+
+        for word in word_repetition:
+            word_repetition[word] += text.lower().count(word.lower())
+
+    return phrase_repetition, word_repetition
+
+def write_file_txt(dictionary: dict[str, int], output_file: str, sort: bool = False) -> None:
+    try:
+        with open(output_file, 'w') as file:
+            for key, value in sorted(dictionary.items()) if sort else dictionary.items():
+                file.write(f'"{key}" aparece {value} veces.\n')
+
+        print(f'Results written to {output_file}')
+    
+    except Exception as e: 
+        print(f'Error: Failed to write results to file: {e}')
+
+def main() -> None:
+    pdf_file: str = select_file('PDF', ('PDF Files', '*.pdf'))
+    if not pdf_file:
+        return
+    
+    pdf_dictionary: str = select_file('PDF dictionary', ('PDF Files', '*.pdf'))
     if not pdf_dictionary:
-        print("No file selected")
         return
     
     pdf_text: list[str] = extract_text_from_pdf(pdf_file)
-    dict_phrases: list[str] = extract_text_from_pdf(pdf_dictionary)
+    if not pdf_text:
+        print('No text extracted from PDF. Exiting program')
+        return
+    
+    dict_text: list[str] = extract_text_from_pdf(pdf_dictionary)
+    if not dict_text:
+        print('No text extracted from PDF dictionary. Exiting program')
+        return
 
-    phrases_repetitions: dict[str, int] = count_repetitions(pdf_text, dict_phrases)
+    dict_phrases, dict_words = create_dictionary(dict_text)
+    phrases_repetitions, words_repetitions = count_repetitions(pdf_text, dict_phrases, dict_words)
 
-    output_file: str = "repeticiones.txt"
-    write_file_txt(phrases_repetitions, output_file)
+    phrases_output_file: str = select_file_output('phrases_repetitions', ('Text files', '*.txt'))
+    if not phrases_output_file:
+        return
+    
+    words_output_file: str = select_file_output('words_repetitions', ('Text files', '*.txt'))
+    if not words_output_file:
+        return
+
+    write_file_txt(phrases_repetitions, phrases_output_file)
+    write_file_txt(words_repetitions, words_output_file, True)
     
 if __name__ == '__main__':
     main()
